@@ -22,14 +22,15 @@ class LineRegression:
         countRow =  len(self.__X)
         centrailX = self.__X.copy()
         i = 0
-        
+
         while i < countRow:
-            element = self.__X.item(i, 1)
+            element = self.__X[i, 1]
             mu = self.__countMu(self.__X, i, countRow)
             sigma = self.__countSigma(self.__X, mu, i, countRow)
-           
+            
             centrailElem = (element - mu) / sigma
-            centrailX = centrailX.itemset((i, 1), centrailElem)
+            centrailX[i, 1] = centrailElem
+            centrailX
             i += 1
         
         return centrailX
@@ -42,7 +43,8 @@ class LineRegression:
         sumElements = 0
         i = numberElem
         while i < countElement:
-            sumElements += pow((elem.item(i, 1) - mu), 2) 
+            sumElements += pow((elem[i, 1] - mu), 2)
+            i += 1
         sigma = (1 / countElement) * sumElements  
         
         return math.sqrt(sigma)
@@ -51,60 +53,65 @@ class LineRegression:
         sumElements = 0
         i = numberElem
         while i < countElement:
-            sumElements += elem.item(i, 1)
+            sumElements += elem[i, 1]
+            i += 1
         mu = (1 / countElement) * sumElements
         return mu
     
     #function for count grad_descent
-    def grad_descent(self, centrailizX, y, wStart):
+    def grad_descent(self, centrailizX, height, wStart):
         allElemInCentrailX = len(centrailizX)
         wOld = np.array(wStart)
         wNew = np.array([])
         
-        i = 0
+        step = 0
         condition = True
         while condition:
-            wNew = self.countWGradientDescent(centrailizX, wOld, y, allElemInCentrailX)
-            if np.norm(wNew - wOld) < self.WEIGHT_DISTANCE_MIN or i >= self.ITERATION_COUNT:
+            wNew = self.countWGradientDescent(centrailizX, wOld, height, allElemInCentrailX)
+            if np.linalg.norm(wNew - wOld) < self.WEIGHT_DISTANCE_MIN or step >= self.ITERATION_COUNT:
                 condition = False
             wOld = wNew
-            i += 1
+            step += 1
         return wNew
     
     #function for count W on one step
-    def countWGradientDescent(self, centrailizX, w, y, allElemInCentrailX):
-        first = w[0] - self.ETA * self.countFirst(centrailizX, w, y, allElemInCentrailX)
-        second = w[1] - self.ETA * self.countSecond(centrailizX, w, y, allElemInCentrailX)
+    def countWGradientDescent(self, centrailizX, w, height, allElemInCentrailX):
+        first = w[0] - self.ETA * self.countFirst(centrailizX, w, height, allElemInCentrailX)
+        second = w[1] - self.ETA * self.countSecond(centrailizX, w, height, allElemInCentrailX)
         return np.array([first, second])
     
-    def countFirst(self, centrailizX, w, y, allElemInCentrailX):
+    def countFirst(self, centrailizX, w, height, allElemInCentrailX):
         gradFirst = 0
-        i = 0
-        while i < allElemInCentrailX:
-            gradFirst += self.countElemForGradFirst(centrailizX, w, y, i)
+        numberElement = 0
+        while numberElement < allElemInCentrailX:
+            gradFirst += self.countElemForGradFirst(centrailizX, w, height, numberElement)
+            numberElement += 1
         return 2/allElemInCentrailX * gradFirst
     
-    def countElemForGradFirst(self, centrailizX, w, y, numberElement):
-        return (w[0] + centrailizX.item(numberElement, 0) * w[1]) - y.loc[numberElement, "Height"]
+    def countElemForGradFirst(self, centrailizX, w, height, numberElement):
+        return (w[0] + centrailizX[numberElement, 1] * w[1]) - height[numberElement]
     
-    def countSecond(self, centrailizX, w, y, allElemInCentrailX):
+    def countSecond(self, centrailizX, w, height, allElemInCentrailX):
         gradSecond = 0
-        i = 0
-        while i < allElemInCentrailX:
-            gradSecond += self.countElemForGradSecond(centrailizX, w, y, i)
+        numberElement = 0
+        while numberElement < allElemInCentrailX:
+            gradSecond += self.countElemForGradSecond(centrailizX, w, height, numberElement)
+            numberElement += 1
         return 2/allElemInCentrailX * gradSecond
     
-    def countElemForGradSecond(self, centrailizX, w, y, numberElement):
-        return ((w[1] + centrailizX.item(numberElement, 0) * w[1]) - y.loc[numberElement, "Height"]) * centrailizX.item(numberElement, 0)
+    def countElemForGradSecond(self, centrailizX, w, height, numberElement):
+        return ((w[0] + centrailizX[numberElement, 1] * w[1]) - height[numberElement]) * centrailizX[numberElement, 1]
     
-    def countOnRandomElem(self, centrailizX, y, w, numberElement):
-        first = w[0] - self.ETA * self.countElemForGradFirst(centrailizX, w, y, numberElement)
-        second = w[1] - self.ETA * self.countElemForGradSecond(centrailizX, w, y, numberElement)
+    def countOnRandomElem(self, centrailizX, height, w, numberElement):
+        first = w[0] - self.ETA * self.countElemForGradFirst(centrailizX, w, height, numberElement)
+        second = w[1] - self.ETA * self.countElemForGradSecond(centrailizX, w, height, numberElement)
         return np.array([first, second])
     
     
 
-testData = pd.read_csv("weights_heights.csv", sep=',')
+pathCSV = "weights_heights.csv"
+#pathCSV = "weights_heightsTest.csv"
+testData = pd.read_csv(pathCSV, sep=',')
 testData.plot()
 #print (testData)
 #print (testData.loc[:, "Height"])
@@ -132,12 +139,16 @@ lineRegression = LineRegression(characteristicMatrix, heightMatrix)
 wAnalitic = lineRegression.countModelsWeights()
 print('wAnalitic')
 print(wAnalitic)
+print('\n')
 
 #2 answer
 centrailizX = lineRegression.centrailizingElement()
 
+#print('centrailizX')
+#print(centrailizX)
+
 wGrad = lineRegression.grad_descent(centrailizX, heightMatrix, [70.1, 0.8])
-lineRegression.reverseCentrailizingElementwGrad(wGrad) # not work
+lineRegression.reverseCentrailizingElement(wGrad) # not work
 print ('wGrad')
 print (wGrad)
 
