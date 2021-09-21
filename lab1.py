@@ -135,7 +135,7 @@ lineRegression = LineRegression(characteristicMatrix, heightMatrix)
 
 # 2 number develop - REMOVE THIS COMMENT
 
-# 1 answer
+# 1 the answer
 wAnalitic = lineRegression.countModelsWeights()
 print('wAnalitic')
 print(wAnalitic)
