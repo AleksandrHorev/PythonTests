@@ -110,7 +110,7 @@ class LineRegression:
     
 
 pathCSV = "weights_heights.csv"
-#pathCSV = "weights_heightsTest.csv"
+#pathCSV = "weights_heightsTest.csv" 
 testData = pd.read_csv(pathCSV, sep=',')
 testData.plot()
 #print (testData)
